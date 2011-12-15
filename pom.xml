@@ -10,9 +10,20 @@
 	</parent>
 
 	<artifactId>weblogic-deployer-plugin</artifactId>
+	<name>Hudson WebLogic Deployer Plug-in</name>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-
+	
+	<url>http://wiki.hudson-ci.org/display/HUDSON/WebLogic+Deployer+Plugin</url>
+	<description>This plugin deploy artifacts built on a CI server Hudson to a weblogic target (managed server, cluster ...) as an application or a library component.</description>
+	
+	<developers>
+    	<developer>
+      		<id>RaphC</id>
+      		<name>Raphael CHAUMIER</name>
+    	</developer>
+  	</developers>
+	
 	<scm>
 		<connection>scm:git:git://github.com/hudson-plugins/weblogic-deployer-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/hudson-plugins/weblogic-deployer-plugin.git</developerConnection>
