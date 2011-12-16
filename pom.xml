@@ -21,6 +21,7 @@
 		<developer>
 			<id>RaphC</id>
 			<name>Raphael CHAUMIER</name>
+			<email>rcr@orange.fr</email>
 		</developer>
 	</developers>
 
@@ -40,7 +41,7 @@
 	</scm>
 
 	<properties>
-		<java.net.id>raphael_c</java.net.id>
+		<!-- <java.net.id>raphael_c</java.net.id>-->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<hudsonTags></hudsonTags>
 	</properties>
@@ -62,6 +63,12 @@
 	<profiles>
 		<profile>
 			<id>hudson-publish</id>
+			<activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
 			<build>
 				<plugins>
 					<plugin>
