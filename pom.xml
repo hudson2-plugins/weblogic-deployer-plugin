@@ -13,22 +13,74 @@
 	<name>Hudson WebLogic Deployer Plug-in</name>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	
+
 	<url>http://wiki.hudson-ci.org/display/HUDSON/WebLogic+Deployer+Plugin</url>
 	<description>This plugin deploy artifacts built on a CI server Hudson to a weblogic target (managed server, cluster ...) as an application or a library component.</description>
-	
+
 	<developers>
-    	<developer>
-      		<id>RaphC</id>
-      		<name>Raphael CHAUMIER</name>
-    	</developer>
-  	</developers>
-	
+		<developer>
+			<id>RaphC</id>
+			<name>Raphael CHAUMIER</name>
+		</developer>
+	</developers>
+
+	<!-- license -->
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>http://opensource.org/licenses/mit-license</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
 	<scm>
 		<connection>scm:git:git://github.com/hudson-plugins/weblogic-deployer-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/hudson-plugins/weblogic-deployer-plugin.git</developerConnection>
 		<url>https://github.com/hudson-plugins/weblogic-deployer-plugin</url>
 	</scm>
 
+	<properties>
+		<java.net.id>raphael_c</java.net.id>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<hudsonTags></hudsonTags>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<mavenExecutorId>forked-path</mavenExecutorId>
+					<goals>deploy</goals>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>hudson-publish</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.4</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
