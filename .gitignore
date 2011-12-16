@@ -1,3 +1,13 @@
-/target
+target
+work
+
+# IntelliJ project files 
+*.iml
+*.iws
+*.ipr
+.idea
+
+# eclipse project file
 .settings
-/work
+.classpath
+.project
