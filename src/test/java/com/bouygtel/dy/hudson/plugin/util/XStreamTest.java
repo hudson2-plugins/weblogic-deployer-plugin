@@ -21,11 +21,8 @@ import com.bouygtel.dy.hudson.plugin.data.WeblogicEnvironment;
  */
 public class XStreamTest {
 
-//	private XStream xstream = Hudson.XSTREAM;
-
 	  /**
-	   * This tests converting a object to XStream when the object
-	   * has a field that holds a collection of references to other objects.
+	   * 
 	   */
 	  @Test public void testObjectConvert() {
 		  	WeblogicDeploymentConfiguration a = new WeblogicDeploymentConfiguration(new WeblogicEnvironment("sdg","sdg","sdg","sdg","sg"), new WeblogicEnvironment("sdg2","sdg2","sdg2","sdg2","sg2"));
@@ -35,6 +32,10 @@ public class XStreamTest {
 	    	Assert.assertEquals(2, actual.getWeblogicEnvironments().length);
 	  }
 	  
+	  /**
+	   * 
+	   * @throws Exception
+	   */
 	  @Test public void testFileConfigurationMarsahlling() throws Exception {
 		  	WeblogicDeploymentConfiguration actual = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(new FileInputStream(new File(System.getProperty("user.dir")+"/src/test/resources/default.xml")));
 		  	Assert.assertEquals(6, actual.getWeblogicEnvironments().length);

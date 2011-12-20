@@ -7,60 +7,43 @@ xsi:schemaLocation="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugi
 			<name>TARGET1</name>
 			<host>host1</host>
 			<port>25000</port>
-			<login>wls</login>
-			<password>t</password>
-			<ftpPassowrd></ftpPassowrd>
-			<remoteDir></remoteDir>
+			<login>weblogic</login>
+			<password>weblogic</password>
 		</weblogic-target>
 		<weblogic-target>
 			<name>TARGET2</name>
 			<host>host2</host>
 			<port>51200</port>
-			<login>wls</login>
-			<password>tu</password>
-			<ftpUser></ftpUser>
-			<ftpPassowrd></ftpPassowrd>
-			<remoteDir></remoteDir>
+			<login>weblogic</login>
+			<password>weblogic</password>
 		</weblogic-target>
 		<weblogic-target>
 			<name>TARGET3</name>
 			<host>host3</host>
 			<port>52200</port>
-			<login>rtuturturtu</login>
-			<password>rt</password>
-			<remoteDir></remoteDir>
+			<login>weblogic</login>
+			<password>weblogic</password>
 		</weblogic-target>
 		<weblogic-target>
 			<name>TARGET4</name>
 			<host>host4</host>
 			<port>31100</port>
-			<login>wls</login>
-			<password>wls</password>
-			<ftpHost>ftpHost2</ftpHost>
-			<ftpUser>utru</ftpUser>
-			<ftpPassowrd>rt</ftpPassowrd>
-			<remoteDir>/librairies/provider/lib</remoteDir>
+			<login>weblogic</login>
+			<password>weblogic</password>
 		</weblogic-target>
 		<weblogic-target>
 			<name>TARGET5</name>
-			<host>host5</host>
+			<host>host4</host>
 			<port>32100</port>
 			<login>weblogic</login>
-			<password>rturturrtrttrrt</password>
-			<ftpHost>ftpHost1</ftpHost>
-			<ftpUser>ftpUser</ftpUser>
-			<ftpPassowrd>toto</ftpPassowrd>
-			<remoteDir>/librairies/provider/lib</remoteDir>
+			<password>weblogic</password>
 		</weblogic-target>
 		<weblogic-target>
 			<name>TARGET6</name>
-			<host>host6</host>
+			<host>host5</host>
 			<port>33100</port>
 			<login>weblogic</login>
-			<password>tutu</password>
-			<ftpUser></ftpUser>
-			<ftpPassowrd></ftpPassowrd>
-			<remoteDir></remoteDir>
+			<password>weblogic</password>
 		</weblogic-target>
 	</weblogic-targets>
 </config>
