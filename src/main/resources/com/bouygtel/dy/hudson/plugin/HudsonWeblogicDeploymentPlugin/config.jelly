@@ -2,54 +2,67 @@
   Configure build plugin
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:p="/lib/hudson/project" xmlns:util="jelly:util">
-  
-	<f:entry title="${%Environment}" field="weblogicEnvironmentTargetedName">
-		<select  class="setting-input" name="weblogicEnvironmentTargetedName">
-        	<option value="unknown">${%NoSpecified}</option>
-            <j:forEach var="inst" items="${descriptor.weblogicEnvironments}">
-            	<f:option selected="${inst.name == instance.weblogicEnvironmentTargetedName}" value="${inst.name}">${inst.name} (${inst.host}:${inst.port})</f:option>
-            </j:forEach>
-		</select>
-	</f:entry>
-  	<f:entry title="${%Name}" field="deploymentName">
-  		<f:textbox/>
-  	</f:entry>
-  	<f:entry title="${%DeploymentTargets}" field="deploymentTargets">
-  		<f:textbox default="AdminServer"/>
-  	</f:entry>
-  	<f:entry title="${%WeblogicLibrary}" field="isLibrary">
-  		<f:checkbox name="isLibrary" checked="${instance.isLibrary}" />
-  	</f:entry>
-  	<f:entry title="${%MustExitOnFailure}" field="mustExitOnFailure">
-  		<f:checkbox name="mustExitOnFailure" checked="${instance.mustExitOnFailure}" />
-  	</f:entry>
-	
-  	<!-- liste des triggers definis -->
-  	<j:invokeStatic var="triggers" className="hudson.triggers.Trigger" method="for_">
-    	<j:arg value="${it}" type="hudson.model.Item" />
-  	</j:invokeStatic>
-	<f:entry title="${%DeploymentStrategy}" field="selectedDeploymentStrategyIds">
-  		<select class="setting-input" multiple="multiple" size="3" name="selectedDeploymentStrategyIds">    		
-			<!-- valeur par defaut -->
-			<f:option value="unknown">${%NoSpecified}</f:option>
-			<!-- liste des causes referencees-->
-			<f:option value="hudson.model.Cause\\$LegacyCodeCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$LegacyCodeCause')}">${%LegacyCodeCause}</f:option>
-			<f:option value="hudson.model.Cause\\$UserCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$UserCause')}">${%UserCause}</f:option>
-			<f:option value="hudson.model.Cause\\$RemoteCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$RemoteCause')}">${%RemoteCause}</f:option>
-    		<f:option value="hudson.model.Cause\\$UpstreamCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$UpstreamCause')}">${%UpstreamCause}</f:option>
-    		<!-- liste des triggers referencees-->
-    		<j:forEach var="inst" items="${triggers}">
-    			<f:option value="${inst.id}" selected="${instance.selectedDeploymentStrategyIds.contains(inst.id)}">${inst.displayName}</f:option>
-        	</j:forEach>
-		</select>
-	</f:entry>
-	
-	<f:entry title="${%SourceManagementDeploymentCriteria}" field="isDeployingOnlyWhenUpdates">
-  		<f:checkbox name="isDeployingOnlyWhenUpdates" checked="${instance.isDeployingOnlyWhenUpdatese}" />
-  	</f:entry>
-	
-	<f:entry title="${%DeployedProjectsDependencies}" description="${%DeployedProjectsDependenciesDescription}" field="deployedProjectsDependencies">
-		<f:textbox/>
-	</f:entry>
+	<j:set var="weblogicEnvironments" value="${descriptor.weblogicEnvironments}" />
+	<j:choose>
+		<j:when test="${! empty(weblogicEnvironments)}">
+			<f:entry title="${%Environment}" field="weblogicEnvironmentTargetedName">
+				<select  class="setting-input" name="weblogicEnvironmentTargetedName">
+		        	<j:forEach var="inst" items="${descriptor.weblogicEnvironments}">
+		            	<f:option selected="${inst.name == instance.weblogicEnvironmentTargetedName}" value="${inst.name}">${inst.name} (${inst.host}:${inst.port})</f:option>
+		            </j:forEach>
+				</select>
+			</f:entry>
+		  	<f:entry title="${%Name}" field="deploymentName">
+		  		<f:textbox/>
+		  	</f:entry>
+		  	<f:entry title="${%DeploymentTargets}" field="deploymentTargets">
+		  		<f:textbox default="AdminServer"/>
+		  	</f:entry>
+		  	<f:entry title="${%WeblogicLibrary}" field="isLibrary">
+		  		<f:checkbox name="isLibrary" checked="${instance.isLibrary}" />
+		  	</f:entry>
+		  	<f:entry title="${%MustExitOnFailure}" field="mustExitOnFailure">
+		  		<f:checkbox name="mustExitOnFailure" checked="${instance.mustExitOnFailure}" />
+		  	</f:entry>
+			
+		  	<!-- liste des triggers definis -->
+		  	<j:invokeStatic var="triggers" className="hudson.triggers.Trigger" method="for_">
+		    	<j:arg value="${it}" type="hudson.model.Item" />
+		  	</j:invokeStatic>
+			<f:entry title="${%DeploymentStrategy}" field="selectedDeploymentStrategyIds">
+		  		<select class="setting-input" multiple="multiple" size="3" name="selectedDeploymentStrategyIds">    		
+					<!-- valeur par defaut -->
+					<f:option value="unknown">${%NoSpecified}</f:option>
+					<!-- liste des causes referencees-->
+					<f:option value="hudson.model.Cause\\$LegacyCodeCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$LegacyCodeCause')}">${%LegacyCodeCause}</f:option>
+					<f:option value="hudson.model.Cause\\$UserCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$UserCause')}">${%UserCause}</f:option>
+					<f:option value="hudson.model.Cause\\$RemoteCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$RemoteCause')}">${%RemoteCause}</f:option>
+		    		<f:option value="hudson.model.Cause\\$UpstreamCause" selected="${instance.selectedDeploymentStrategyIds.contains('hudson.model.Cause\\$UpstreamCause')}">${%UpstreamCause}</f:option>
+		    		<!-- liste des triggers referencees-->
+		    		<j:forEach var="inst" items="${triggers}">
+		    			<f:option value="${inst.id}" selected="${instance.selectedDeploymentStrategyIds.contains(inst.id)}">${inst.displayName}</f:option>
+		        	</j:forEach>
+				</select>
+			</f:entry>
+			
+			<f:entry title="${%SourceManagementDeploymentCriteria}" field="isDeployingOnlyWhenUpdates">
+		  		<f:checkbox name="isDeployingOnlyWhenUpdates" checked="${instance.isDeployingOnlyWhenUpdatese}" />
+		  	</f:entry>
+			
+			<f:entry title="${%DeployedProjectsDependencies}" description="${%DeployedProjectsDependenciesDescription}" field="deployedProjectsDependencies">
+				<f:textbox/>
+			</f:entry>
+			
+		</j:when>
+		<j:otherwise>
+			<!-- no configuration. this will be an error, so warn the user now -->
+      		<f:entry>
+				<div class="error">
+		          ${%PluginConfigurationMissing.error.1}&lt;br>
+		          ${%PluginConfigurationMissing.error.2(rootURL)}
+		        </div>
+	        </f:entry>
+		</j:otherwise>
+	</j:choose>
 	
 </j:jelly>

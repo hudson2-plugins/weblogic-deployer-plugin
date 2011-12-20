@@ -9,46 +9,30 @@ import hudson.Launcher;
 import hudson.Proc;
 import hudson.model.Action;
 import hudson.model.BuildListener;
-import hudson.model.BuildableItem;
-import hudson.model.Item;
 import hudson.model.Result;
 import hudson.model.TopLevelItem;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
-import hudson.model.Cause.UpstreamCause;
-import hudson.model.CauseAction;
 import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.model.Job;
-import hudson.model.Project;
-import hudson.model.Run;
-import hudson.remoting.Which;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-import hudson.triggers.Trigger;
-import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
-import hudson.util.RunList;
-//import hudson.util.ListBoxModel;
-//import hudson.util.ListBoxModel.Option;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -60,7 +44,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -69,12 +52,10 @@ import org.codehaus.plexus.util.ReaderFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-import org.springframework.util.ClassUtils;
 
 import com.bouygtel.dy.hudson.plugin.build.WebLogicDeploymentStatus;
 import com.bouygtel.dy.hudson.plugin.configuration.WeblogicDeploymentConfiguration;
 import com.bouygtel.dy.hudson.plugin.data.TransfertConfiguration;
-import com.bouygtel.dy.hudson.plugin.data.WebLogicDeployment;
 import com.bouygtel.dy.hudson.plugin.data.WeblogicEnvironment;
 import com.bouygtel.dy.hudson.plugin.deployer.WebLogicCommand;
 import com.bouygtel.dy.hudson.plugin.deployer.WebLogicDeployer;
@@ -84,7 +65,6 @@ import com.bouygtel.dy.hudson.plugin.util.FTPUtils;
 import com.bouygtel.dy.hudson.plugin.util.JdkUtils;
 import com.bouygtel.dy.hudson.plugin.util.MavenModelUtils;
 import com.bouygtel.dy.hudson.plugin.util.URLUtils;
-import com.bouygtel.dy.hudson.plugin.Messages;
 
 
 
@@ -469,7 +449,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	@Extension
 	public static final class HudsonWeblogicDeploymentPluginDescriptor extends BuildStepDescriptor<Publisher> {
 		
-		private static transient final String PLUGIN_DEFAULT_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/default.xml";
+//		private static transient final String PLUGIN_DEFAULT_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/default.xml";
 		
 		public static transient final String PLUGIN_XSD_SCHEMA_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/plugin-configuration.xsd";
 		
@@ -528,9 +508,9 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		 */
 		public WeblogicEnvironment[] getWeblogicEnvironments() {
 			
-			if(weblogicEnvironments == null){
-				loadWeblogicEnvironments();
-			}
+//			if(weblogicEnvironments == null){
+//				loadWeblogicEnvironments();
+//			}
 			
 			return weblogicEnvironments;
 		}
@@ -625,11 +605,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 			javaOpts = json.getString("javaOpts");
 			
 			//Chargement des weblogicTargets
-			if(StringUtils.isBlank(json.getString("configurationFilePath"))){
-				configurationFilePath = Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH;
-			} else {
-				configurationFilePath = json.getString("configurationFilePath");
-			}
+			configurationFilePath = json.getString("configurationFilePath");
 			loadWeblogicEnvironments();
 			
 			//Sauvegarde de la configuration du plugin
@@ -638,29 +614,31 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		}
 		
 		/**
-		 * 
+		 * Charge les environnements weblogic declares dans le fichier de conf
 		 */
 		private void loadWeblogicEnvironments(){
 			try {
 		        
 				WeblogicDeploymentConfiguration weblogicDeploymentConfiguration =null;
 		        
-		        if(StringUtils.isBlank(configurationFilePath)) {
-		        	// Cas ou aucun fichier n'est mentionne
-		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
-		        	URL url = uri.toURL();
-		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
-		        } else if(configurationFilePath.startsWith(URLUtils.HTTP_PROTOCOL_PREFIX)){
+//		        if(StringUtils.isBlank(configurationFilePath)) {
+//		        	// Cas ou aucun fichier n'est mentionne
+//		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
+//		        	URL url = uri.toURL();
+//		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
+//		        } else 
+		        if(configurationFilePath.startsWith(URLUtils.HTTP_PROTOCOL_PREFIX)){
 		        	URI uri = new URI(configurationFilePath);
 		        	URL url = uri.toURL();
 		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
 		        } else if (FileUtils.fileExists(configurationFilePath)) {
 		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(new FileInputStream(FileUtils.getFile(configurationFilePath)));
-		        } else {
-		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
-		        	URL url = uri.toURL();
-		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
 		        }
+//		        else {
+//		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
+//		        	URL url = uri.toURL();
+//		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
+//		        }
 		        
 		        if(weblogicDeploymentConfiguration != null && ! ArrayUtils.isEmpty(weblogicDeploymentConfiguration.getWeblogicEnvironments())){
 		        	weblogicEnvironments = weblogicDeploymentConfiguration.getWeblogicEnvironments();
@@ -680,13 +658,9 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		 */
         public FormValidation doCheckConfigurationFilePath(@QueryParameter String value) throws IOException, ServletException {
 
-        	if(value.length() == 0){
-        		return FormValidation.warning("The default configuration will be used.");
-        	}
-        	
         	if(value.startsWith(URLUtils.HTTP_PROTOCOL_PREFIX)) {
         		if(! URLUtils.exists(value)){
-        			return FormValidation.error("The url " + value + " can't reach.");
+        			return FormValidation.error("The url " + value + " can't be reached.");
         		}
         		return FormValidation.ok();
         	}
