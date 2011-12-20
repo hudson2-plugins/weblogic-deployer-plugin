@@ -1,0 +1,19 @@
+<!--
+  Displays the deployment command output
+  org.apache.commons.jelly.tags.util.UtilTagLibrary
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"  xmlns:util="jelly:util" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+  
+  <util:loadText var="log" file="${it.build.rootDir}/deploymentLog.txt" encoding="UTF-8"/>
+  
+  <l:layout title="${it.name}">
+   	<st:include it="${it.build}" page="sidepanel.jelly" />
+	<l:main-panel>
+       	<h1>${%BuildSeeWeblogicDeploymentLogsAction.Title}</h1>
+		<div>
+        	<st:nbsp/>
+        	<pre>${log}</pre>
+      	</div>       	
+	</l:main-panel>
+  	</l:layout>
+</j:jelly>

@@ -1,0 +1,8 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<div>
+${%Configuration File path help}
+<br/>
+${%Configuration File path help description} <a href="${rootURL}/plugin/dy-hudson-weblogic-deploy-plugin/defaultConfig/plugin-configuration.xsd">plugin-configuration.xsd</a>
+</div>
+</j:jelly>

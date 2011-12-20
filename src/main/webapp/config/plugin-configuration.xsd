@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+elementFormDefault="qualified" xmlns="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin" 
+targetNamespace="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin">
+	
+	<xs:element name="config">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="weblogic-targets" minOccurs="0" maxOccurs="1" type="type_weblogic-targets"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:complexType name="type_weblogic-targets">
+		<xs:sequence>
+			<xs:element name="weblogic-target" minOccurs="0" maxOccurs="unbounded" type="type_target"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="type_target">
+		<xs:sequence>
+			<xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1" nillable="false"/>
+			<xs:element name="host" type="xs:string" minOccurs="1" maxOccurs="1" nillable="false"/>
+			<xs:element name="port" type="xs:int" minOccurs="1" maxOccurs="1" nillable="false"/>
+			<xs:element name="login" type="xs:string" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="password" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="ftpHost" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="ftpUser" type="xs:string" minOccurs="1" maxOccurs="1" nillable="false"/>
+			<xs:element name="ftpPassowrd" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="remoteDir" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
