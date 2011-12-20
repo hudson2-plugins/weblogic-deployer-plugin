@@ -449,9 +449,13 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	@Extension
 	public static final class HudsonWeblogicDeploymentPluginDescriptor extends BuildStepDescriptor<Publisher> {
 		
-//		private static transient final String PLUGIN_DEFAULT_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/default.xml";
-		
 		public static transient final String PLUGIN_XSD_SCHEMA_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/plugin-configuration.xsd";
+		
+		public static transient final String WL_HOME_ENV_VAR_NAME = "WL_HOME";
+		
+		public static transient final String WL_HOME_LIB_DIR = "/server/lib/";
+		
+		public static transient final String WL_WEBLOGIC_LIBRARY_NAME = "weblogic.jar";
 		
 		private String configurationFilePath;
 		
@@ -508,9 +512,9 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		 */
 		public WeblogicEnvironment[] getWeblogicEnvironments() {
 			
-//			if(weblogicEnvironments == null){
-//				loadWeblogicEnvironments();
-//			}
+			if(weblogicEnvironments == null){
+				loadWeblogicEnvironments();
+			}
 			
 			return weblogicEnvironments;
 		}
@@ -626,7 +630,12 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 //		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
 //		        	URL url = uri.toURL();
 //		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
-//		        } else 
+//		        } else
+				
+				if(StringUtils.isBlank(configurationFilePath)){
+					return;
+				}
+				
 		        if(configurationFilePath.startsWith(URLUtils.HTTP_PROTOCOL_PREFIX)){
 		        	URI uri = new URI(configurationFilePath);
 		        	URL url = uri.toURL();
@@ -681,6 +690,15 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
         public FormValidation doCheckExtraClasspath(@QueryParameter String value) throws IOException, ServletException {
         	
         	if(value.length() == 0){
+        		
+        		// Si aucun jar specifie. On tente le WL_HOME.
+        		// On verifie que la librairie existe bien
+        		String envWlHome = System.getenv(WL_HOME_ENV_VAR_NAME);
+        		String defaultClasspath = FileUtils.normalize(envWlHome+WL_HOME_LIB_DIR+WL_WEBLOGIC_LIBRARY_NAME);
+        		if(FileUtils.fileExists(defaultClasspath)){
+        			return FormValidation.warning("By default, the "+WL_WEBLOGIC_LIBRARY_NAME+" library found into "+envWlHome+WL_HOME_LIB_DIR+" will be used.");
+        		}
+        		
         		return FormValidation.error("The weblogic library has to be filled in.");
         	}
         	
