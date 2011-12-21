@@ -42,7 +42,7 @@
 
 	<properties>
 		<!-- <java.net.id>raphael_c</java.net.id>-->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> -->
 		<hudsonTags></hudsonTags>
 	</properties>
 

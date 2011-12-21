@@ -362,7 +362,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	        
 	        //Transfert FTP pour les librairies (contrainte weblogic)
 	        if(isLibrary){
-	        	//Par defaut si ftp n'est pas renseigné on prend le host
+	        	//Par defaut si ftp n'est pas renseigne on prend le host
 	        	String ftpHost = StringUtils.isBlank(weblogicEnvironmentTargeted.getFtpHost()) ? weblogicEnvironmentTargeted.getHost() : weblogicEnvironmentTargeted.getFtpHost();
 	        	// path to remote resource
 	            remoteFilePath = weblogicEnvironmentTargeted.getRemoteDir() + "/" + fullArtifactFinalName;
@@ -464,12 +464,12 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		private transient WeblogicEnvironment[] weblogicEnvironments;
 		
 		/**
-		 * Pattern des artifacts à exclure
+		 * Pattern des artifacts a exclure
 		 */
 		private String excludedArtifactNamePattern;
 		
 		/**
-		 * classpath additionnel (librairie weblogic � utiliser)
+		 * classpath additionnel (librairie weblogic a utiliser)
 		 */
 		private String extraClasspath;
 		
@@ -747,8 +747,8 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	 */
 	private boolean hasAtLeastOneBuildCauseChecked(AbstractBuild<?, ?> build, List<String> deploymentStrategies) {
 		boolean isProperlyBuildCause = false;
-		//On ne controle la desactivation que si la strategie a été définie
-		//gestion des classes privees : les tokens \$ sont transformées en $
+		//On ne controle la desactivation que si la strategie a ete definie
+		//gestion des classes privees : les tokens \$ sont transformees en $
 		List<String> searchedCauseIds = new ArrayList<String>();
 		for(String elt : deploymentStrategies){
 			searchedCauseIds.add(StringUtils.remove(elt, '\\'));
