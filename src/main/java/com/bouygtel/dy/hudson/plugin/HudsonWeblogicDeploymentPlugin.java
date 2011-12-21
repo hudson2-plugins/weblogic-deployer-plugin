@@ -122,7 +122,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	private List<String> selectedDeploymentStrategyIds;
 	
 	/**
-	 * le deploiement est effectif uniquement si les sources ont changés
+	 * le deploiement est effectif uniquement si les sources ont changÃ©s
 	 */
 	private boolean isDeployingOnlyWhenUpdates;
 	
@@ -288,7 +288,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		}
 		listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - the JDK " +usedJdk != null ? usedJdk.getHome(): System.getProperty("JAVA_HOME")+ " will be used.");
 		
-		// Identification de la ressource à deployer
+		// Identification de la ressource Ã  deployer
 		FilePath archivedArtifact = null;
 		String artifactName = null;
 		String fullArtifactFinalName = null;
@@ -351,7 +351,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 			WebLogicDeployerParameters undeployWebLogicDeployerParameters = new WebLogicDeployerParameters(build, launcher, listener, usedJdk, deploymentName, isLibrary, deploymentTargets, weblogicEnvironmentTargeted, artifactName, null, WebLogicCommand.UNDEPLOY, true, getDescriptor().getJavaOpts(), getDescriptor().getExtraClasspath());
 			String[] undeployCommand = WebLogicDeployer.getWebLogicCommandLine(undeployWebLogicDeployerParameters);
 	        
-	        OutputStream out = new BufferedOutputStream(listener.getLogger());
+//	        OutputStream out = new BufferedOutputStream(listener.getLogger());
 	        // write out the revision file
 	        deploymentLogOut = new FileOutputStream(getDeploymentLogFile(build));
 	        deploymentLogOut.write("------------------------------------  ARTIFACT UNDEPLOYMENT ------------------------------------------------\r\n".getBytes());
@@ -362,7 +362,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	        
 	        //Transfert FTP pour les librairies (contrainte weblogic)
 	        if(isLibrary){
-	        	//Par defaut si ftp n'est pas renseigné on prend le host
+	        	//Par defaut si ftp n'est pas renseignÃ© on prend le host
 	        	String ftpHost = StringUtils.isBlank(weblogicEnvironmentTargeted.getFtpHost()) ? weblogicEnvironmentTargeted.getHost() : weblogicEnvironmentTargeted.getFtpHost();
 	        	// path to remote resource
 	            remoteFilePath = weblogicEnvironmentTargeted.getRemoteDir() + "/" + fullArtifactFinalName;
@@ -464,12 +464,12 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		private transient WeblogicEnvironment[] weblogicEnvironments;
 		
 		/**
-		 * Pattern des artifacts à exclure
+		 * Pattern des artifacts Ã  exclure
 		 */
 		private String excludedArtifactNamePattern;
 		
 		/**
-		 * classpath additionnel (librairie weblogic à utiliser)
+		 * classpath additionnel (librairie weblogic ï¿½ utiliser)
 		 */
 		private String extraClasspath;
 		
@@ -747,8 +747,8 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	 */
 	private boolean hasAtLeastOneBuildCauseChecked(AbstractBuild<?, ?> build, List<String> deploymentStrategies) {
 		boolean isProperlyBuildCause = false;
-		//On ne controle la desactivation que si la strategie a été définie
-		//gestion des classes privees : les tokens \$ sont transformées en $
+		//On ne controle la desactivation que si la strategie a Ã©tÃ© dÃ©finie
+		//gestion des classes privees : les tokens \$ sont transformÃ©es en $
 		List<String> searchedCauseIds = new ArrayList<String>();
 		for(String elt : deploymentStrategies){
 			searchedCauseIds.add(StringUtils.remove(elt, '\\'));
@@ -789,6 +789,11 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param build
+	 * @return
+	 */
 	public static File getDeploymentLogFile(AbstractBuild<?,?> build) {
 		return new File(build.getRootDir(),"deploymentLog.txt");
 	}
