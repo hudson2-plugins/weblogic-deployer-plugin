@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin"
+<config xmlns="http://org.hudsonci.plugins.deploy.weblogic/WeblogicDeploymentPlugin"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin plugin-configuration.xsd">
+xsi:schemaLocation="http://org.hudsonci.plugins.deploy.weblogic/WeblogicDeploymentPlugin plugin-configuration.xsd">
 	<weblogic-targets>
 		<weblogic-target>
 			<name>TARGET1</name>

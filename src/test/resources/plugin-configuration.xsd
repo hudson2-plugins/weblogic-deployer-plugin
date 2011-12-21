@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-elementFormDefault="qualified" xmlns="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin" 
-targetNamespace="http://com.bouygtel.dy.hudson.plugin/WeblogicDeploymentPlugin">
+elementFormDefault="qualified" xmlns="http://org.hudsonci.plugins.deploy.weblogic/WeblogicDeploymentPlugin" 
+targetNamespace="http://org.hudsonci.plugins.deploy.weblogic/WeblogicDeploymentPlugin">
 	
 	<xs:element name="config">
 		<xs:complexType>
