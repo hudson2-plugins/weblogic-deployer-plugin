@@ -122,7 +122,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	private List<String> selectedDeploymentStrategyIds;
 	
 	/**
-	 * le deploiement est effectif uniquement si les sources ont changés
+	 * le deploiement est effectif uniquement si les sources ont changes
 	 */
 	private boolean isDeployingOnlyWhenUpdates;
 	
@@ -288,7 +288,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		}
 		listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - the JDK " +usedJdk != null ? usedJdk.getHome(): System.getProperty("JAVA_HOME")+ " will be used.");
 		
-		// Identification de la ressource à deployer
+		// Identification de la ressource a deployer
 		FilePath archivedArtifact = null;
 		String artifactName = null;
 		String fullArtifactFinalName = null;
