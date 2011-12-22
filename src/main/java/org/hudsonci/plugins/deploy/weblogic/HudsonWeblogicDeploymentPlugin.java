@@ -23,12 +23,10 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
@@ -57,6 +55,7 @@ import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicCommand;
 import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicDeployer;
 import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicDeployerParameters;
 import org.hudsonci.plugins.deploy.weblogic.exception.RequiredJDKNotFoundException;
+import org.hudsonci.plugins.deploy.weblogic.properties.WebLogicDeploymentPluginConstantes;
 import org.hudsonci.plugins.deploy.weblogic.util.FTPUtils;
 import org.hudsonci.plugins.deploy.weblogic.util.JdkUtils;
 import org.hudsonci.plugins.deploy.weblogic.util.MavenModelUtils;
@@ -64,8 +63,6 @@ import org.hudsonci.plugins.deploy.weblogic.util.URLUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-
-import org.hudsonci.plugins.deploy.weblogic.Messages;
 
 
 
@@ -75,10 +72,7 @@ import org.hudsonci.plugins.deploy.weblogic.Messages;
  */
 public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	
-	private static transient final String PLUGIN_RESOURCES_PATH = "/plugin/dy-hudson-weblogic-deploy-plugin";
-	
 	private static transient final String POM_FILE_NAME = "pom.xml";
-	
 	
 	private static transient final String OUTPUT_MAVEN_BUILD_PROJECT_DIRECTORY = "target";
 	
@@ -450,7 +444,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	@Extension
 	public static final class HudsonWeblogicDeploymentPluginDescriptor extends BuildStepDescriptor<Publisher> {
 		
-		public static transient final String PLUGIN_XSD_SCHEMA_CONFIG_FILE_PATH = PLUGIN_RESOURCES_PATH + "/defaultConfig/plugin-configuration.xsd";
+		public static transient final String PLUGIN_XSD_SCHEMA_CONFIG_FILE_PATH = WebLogicDeploymentPluginConstantes.PLUGIN_RESOURCES_PATH + "/defaultConfig/plugin-configuration.xsd";
 		
 		public static transient final String WL_HOME_ENV_VAR_NAME = "WL_HOME";
 		

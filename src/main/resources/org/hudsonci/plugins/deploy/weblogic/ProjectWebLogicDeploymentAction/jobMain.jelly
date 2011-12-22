@@ -2,7 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
         <table style="margin-top: 1em; margin-left:1em;">
 	        <tr>
-	        	<td><img height="48" style="margin-right:1em" alt="" width="48" src="${rootUrl}/plugin/dy-hudson-weblogic-deploy-plugin/icons/48x48/BEA.jpg" /></td>
+	        	<td><img height="48" style="margin-right:1em" alt="" width="48" src="${rootUrl}/plugin/weblogic-deployer-plugin/icons/48x48/BEA.jpg" /></td>
 	        	<td style="vertical-align:middle">
 	        		${%Title} : 
 	        		<j:choose>

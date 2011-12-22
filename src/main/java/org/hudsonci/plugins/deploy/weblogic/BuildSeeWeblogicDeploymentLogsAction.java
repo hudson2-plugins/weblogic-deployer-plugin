@@ -14,12 +14,14 @@ import hudson.model.Action;
 import hudson.model.BuildBadgeAction;
 import hudson.model.AbstractBuild;
 import hudson.model.DirectoryBrowserSupport;
+import hudson.model.Hudson;
 import hudson.model.TaskAction;
 import hudson.security.ACL;
 import hudson.security.Permission;
 
 import org.hudsonci.plugins.deploy.weblogic.build.WebLogicDeploymentStatus;
 import org.hudsonci.plugins.deploy.weblogic.data.WeblogicEnvironment;
+import org.hudsonci.plugins.deploy.weblogic.properties.WebLogicDeploymentPluginConstantes;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerProxy;
 import org.kohsuke.stapler.StaplerRequest;
@@ -41,9 +43,7 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	 */
 	private static final long serialVersionUID = -5479554061667005120L;
 
-	private static transient final String PLUGIN_RESOURCES_PATH = "/plugin/dy-hudson-weblogic-deploy-plugin";
-	
-	private static transient final String iconFileName = PLUGIN_RESOURCES_PATH + "/icons/48x48/BEA.jpg";
+	private static transient final String iconFileName = WebLogicDeploymentPluginConstantes.PLUGIN_RESOURCES_PATH + "/icons/48x48/BEA.jpg";
 	
 	@Exported(name="status")
 	public WebLogicDeploymentStatus deploymentActionStatus;

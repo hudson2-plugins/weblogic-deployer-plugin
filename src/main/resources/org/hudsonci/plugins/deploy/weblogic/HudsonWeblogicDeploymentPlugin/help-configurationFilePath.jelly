@@ -3,6 +3,6 @@
 <div>
 ${%Configuration File path help}
 <br/>
-${%Configuration File path help description} <a href="${rootURL}/plugin/dy-hudson-weblogic-deploy-plugin/defaultConfig/plugin-configuration.xsd">plugin-configuration.xsd</a>
+${%Configuration File path help description} <a href="${rootURL}/plugin/weblogic-deployer-plugin/defaultConfig/plugin-configuration.xsd">plugin-configuration.xsd</a>
 </div>
 </j:jelly>
