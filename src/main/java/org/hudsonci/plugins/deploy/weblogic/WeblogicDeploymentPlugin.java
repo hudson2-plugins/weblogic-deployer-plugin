@@ -7,11 +7,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
-import hudson.maven.MavenBuildProxy;
-import hudson.maven.MavenBuild;
-import hudson.maven.MavenModule;
-import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -272,7 +267,6 @@ public class WeblogicDeploymentPlugin extends Recorder {
 			WebLogicDeployerParameters undeployWebLogicDeployerParameters = new WebLogicDeployerParameters(build, launcher, listener, usedJdk, deploymentName, isLibrary, deploymentTargets, weblogicEnvironmentTargeted, artifactName, null, WebLogicCommand.UNDEPLOY, true, getDescriptor().getJavaOpts(), getDescriptor().getExtraClasspath());
 			String[] undeployCommand = WebLogicDeployer.getWebLogicCommandLine(undeployWebLogicDeployerParameters);
 	        
-//	        OutputStream out = new BufferedOutputStream(listener.getLogger());
 	        deploymentLogOut.write("------------------------------------  ARTIFACT UNDEPLOYMENT ------------------------------------------------\r\n".getBytes());
 	        listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - UNDEPLOYING ARTIFACT...");
 	        final Proc undeploymentProc = launcher.launch().cmds(undeployCommand).stdout(deploymentLogOut).start();
@@ -405,7 +399,6 @@ public class WeblogicDeploymentPlugin extends Recorder {
 	private WeblogicEnvironment getWeblogicEnvironmentTargeted(BuildListener listener) {
 		
 		WeblogicEnvironment out = null;
-		
 		WeblogicEnvironment[] targets = getDescriptor().getWeblogicEnvironments();
 		
 		if(targets == null){
