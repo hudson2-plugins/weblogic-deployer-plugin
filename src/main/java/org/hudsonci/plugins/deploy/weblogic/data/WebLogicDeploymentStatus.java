@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.hudsonci.plugins.deploy.weblogic.build;
+package org.hudsonci.plugins.deploy.weblogic.data;
 
 
 /**

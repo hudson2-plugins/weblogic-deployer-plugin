@@ -6,18 +6,18 @@ import hudson.model.AbstractProject;
 
 import java.util.List;
 
-import org.hudsonci.plugins.deploy.weblogic.build.WebLogicDeploymentStatus;
 import org.hudsonci.plugins.deploy.weblogic.data.WebLogicDeployment;
+import org.hudsonci.plugins.deploy.weblogic.data.WebLogicDeploymentStatus;
 
 
-public class ProjectWebLogicDeploymentAction implements Action  {
+public class PrintingWebLogicDeploymentLastSuccessResultAction implements Action  {
 
 	private WebLogicDeployment lastDeploymentSucessfull;
 	
 	/**
 	 * 
 	 */
-	public ProjectWebLogicDeploymentAction(){
+	public PrintingWebLogicDeploymentLastSuccessResultAction(){
 		super();
 	}
 	
@@ -25,12 +25,12 @@ public class ProjectWebLogicDeploymentAction implements Action  {
 	 * 
 	 * @param project
 	 */
-	public ProjectWebLogicDeploymentAction(AbstractProject<?, ?> project){
+	public PrintingWebLogicDeploymentLastSuccessResultAction(AbstractProject<?, ?> project){
 		super();
 		
 		List<AbstractBuild<?, ?>> builds = (List<AbstractBuild<?, ?>>) project.getBuilds();
 		for (AbstractBuild<?, ?> build : builds) {
-			BuildSeeWeblogicDeploymentLogsAction deploymentAction = build.getAction(BuildSeeWeblogicDeploymentLogsAction.class);
+			WatchingWeblogicDeploymentLogsAction deploymentAction = build.getAction(WatchingWeblogicDeploymentLogsAction.class);
 			if(deploymentAction != null && WebLogicDeploymentStatus.SUCCEEDED.equals(deploymentAction.deploymentActionStatus)){
 				lastDeploymentSucessfull = new WebLogicDeployment(build.getNumber(), build.getTime(), deploymentAction.getTarget());
 				break;

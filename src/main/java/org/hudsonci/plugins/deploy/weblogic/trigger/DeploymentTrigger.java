@@ -6,18 +6,16 @@ package org.hudsonci.plugins.deploy.weblogic.trigger;
 import static hudson.Util.fixNull;
 import hudson.Extension;
 import hudson.model.BuildableItem;
-import hudson.model.Cause;
 import hudson.model.Item;
 import hudson.scheduler.CronTabList;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
-import hudson.triggers.TimerTrigger.TimerTriggerCause;
 import hudson.util.FormValidation;
 
+import org.hudsonci.plugins.deploy.weblogic.Messages;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.hudsonci.plugins.deploy.weblogic.Messages;
+
 import antlr.ANTLRException;
 
 /**
@@ -31,11 +29,6 @@ public class DeploymentTrigger extends Trigger<BuildableItem> {
         super(schedule);
     }
 
-//    @Override
-//    public void run() {
-//        job.scheduleBuild(0, new DeploymentTriggerCause());
-//    }
-    
 	/* (non-Javadoc)
 	 * @see hudson.triggers.Trigger#getDescriptor()
 	 */
@@ -85,24 +78,4 @@ public class DeploymentTrigger extends Trigger<BuildableItem> {
             }
         }
     }
-    
-//    /*
-//     * 
-//     */
-//    public static class DeploymentTriggerCause extends Cause {
-//        @Override
-//        public String getShortDescription() {
-//            return Messages.DeploymentTrigger_Cause_ShortDescription();
-//        }
-//
-//        @Override
-//        public boolean equals(Object o) {
-//            return o instanceof DeploymentTriggerCause;
-//        }
-
-//        @Override
-//        public int hashCode() {
-//            return 5;
-//        }
-//    }
 }

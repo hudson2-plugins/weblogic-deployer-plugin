@@ -7,6 +7,11 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
+import hudson.maven.MavenBuildProxy;
+import hudson.maven.MavenBuild;
+import hudson.maven.MavenModule;
+import hudson.maven.MavenModuleSet;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -17,6 +22,7 @@ import hudson.model.Cause;
 import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.model.Job;
+import hudson.model.Run.Artifact;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -47,15 +53,17 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.ReaderFactory;
-import org.hudsonci.plugins.deploy.weblogic.build.WebLogicDeploymentStatus;
 import org.hudsonci.plugins.deploy.weblogic.configuration.WeblogicDeploymentConfiguration;
+import org.hudsonci.plugins.deploy.weblogic.data.GeneratedResource;
 import org.hudsonci.plugins.deploy.weblogic.data.TransfertConfiguration;
+import org.hudsonci.plugins.deploy.weblogic.data.WebLogicDeploymentStatus;
 import org.hudsonci.plugins.deploy.weblogic.data.WeblogicEnvironment;
 import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicCommand;
 import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicDeployer;
 import org.hudsonci.plugins.deploy.weblogic.deployer.WebLogicDeployerParameters;
 import org.hudsonci.plugins.deploy.weblogic.exception.RequiredJDKNotFoundException;
 import org.hudsonci.plugins.deploy.weblogic.properties.WebLogicDeploymentPluginConstantes;
+import org.hudsonci.plugins.deploy.weblogic.util.DeployerClassPathUtils;
 import org.hudsonci.plugins.deploy.weblogic.util.FTPUtils;
 import org.hudsonci.plugins.deploy.weblogic.util.JdkUtils;
 import org.hudsonci.plugins.deploy.weblogic.util.MavenModelUtils;
@@ -70,11 +78,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author rchaumie
  *
  */
-public class HudsonWeblogicDeploymentPlugin extends Recorder {
-	
-	private static transient final String POM_FILE_NAME = "pom.xml";
-	
-	private static transient final String OUTPUT_MAVEN_BUILD_PROJECT_DIRECTORY = "target";
+public class WeblogicDeploymentPlugin extends Recorder {
 	
 	public static transient final String NON_DEPLOYMENT_STRATEGY_VALUE_SPECIFIED = "unknown";
 	
@@ -127,7 +131,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	private String deployedProjectsDependencies;
 	
 	@DataBoundConstructor
-    public HudsonWeblogicDeploymentPlugin(String weblogicEnvironmentTargetedName, String deploymentName, String deploymentTargets, boolean isLibrary, boolean mustExitOnFailure, List<String> selectedDeploymentStrategyIds, String deployedProjectsDependencies, boolean isDeployingOnlyWhenUpdates) {
+    public WeblogicDeploymentPlugin(String weblogicEnvironmentTargetedName, String deploymentName, String deploymentTargets, boolean isLibrary, boolean mustExitOnFailure, List<String> selectedDeploymentStrategyIds, String deployedProjectsDependencies, boolean isDeployingOnlyWhenUpdates) {
         this.weblogicEnvironmentTargetedName = weblogicEnvironmentTargetedName;
         this.deploymentName = deploymentName;
         this.deploymentTargets = deploymentTargets;
@@ -212,7 +216,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	 */
 	@Override
 	public Action getProjectAction(AbstractProject<?, ?> project) {
-		return new ProjectWebLogicDeploymentAction(project);
+		return new PrintingWebLogicDeploymentLastSuccessResultAction(project);
 	}
 	
 	/*
@@ -222,95 +226,25 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	@Override
 	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 		
-		//Verification desactivation plugin
-		if(getDescriptor().isPluginDisabled()){
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - The plugin execution is disabled.");
-			return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
-		}
-		
-		//Verification coherence du (des) declencheur(s)
-		boolean isSpecifiedDeploymentStrategyValue = true;
-		if(CollectionUtils.isEmpty(selectedDeploymentStrategyIds) || 
-				(selectedDeploymentStrategyIds.size() == 1 && selectedDeploymentStrategyIds.contains(NON_DEPLOYMENT_STRATEGY_VALUE_SPECIFIED))){
-			isSpecifiedDeploymentStrategyValue = false;
-		}
-		
-		if(isSpecifiedDeploymentStrategyValue && !hasAtLeastOneBuildCauseChecked(build, selectedDeploymentStrategyIds)){
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - Not properly build causes expected (configured=" +StringUtils.join(selectedDeploymentStrategyIds,';')+ ") (currents=" +StringUtils.join(build.getCauses(),';')+ ") : The plugin execution is disabled.");
-			return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
-		}
-		
-		//Verification strategie relative a la gestion des sources (systematique (par defaut) / uniquement sur modification(actif) )
-		if(isDeployingOnlyWhenUpdates && build.getChangeSet().isEmptySet()) {
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - No changes : The plugin execution is disabled.");
-			return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
-		}
-		
-		
-		// Verification condition de dependance remplie
-		boolean satisfiedDependenciesDeployments = true;
-		if(StringUtils.isNotBlank(deployedProjectsDependencies)){
-			String[] listeDependances = StringUtils.split(StringUtils.trim(deployedProjectsDependencies), ',');
-			for(int i = 0; i<listeDependances.length; i++){
-				TopLevelItem item = Hudson.getInstance().getItem(listeDependances[i]);
-				if(item instanceof Job){
-					BuildSeeWeblogicDeploymentLogsAction deploymentAction = ((Job<?,?>) item).getLastBuild().getAction(BuildSeeWeblogicDeploymentLogsAction.class);
-					listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - satisfying dependencies project involved : " + item.getName()+ " deploymentAction : "+ deploymentAction.getDeploymentActionStatus());
-					if(deploymentAction != null && WebLogicDeploymentStatus.FAILED.equals(deploymentAction.getDeploymentActionStatus())){
-						satisfiedDependenciesDeployments = false;
-					}
-				}
-			}
-			
-			if(!satisfiedDependenciesDeployments){
-				listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - Not satisfied project dependencies deployment : The plugin execution is disabled.");
-				return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
-			}
-		}
-		
-		// Verification build SUCCESS
-		if (build.getResult().isWorseThan(Result.SUCCESS)) {
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - build didn't finished successfully. The plugin execution is disabled.");
-			return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
-		}
-		
-		// Verification version JDK
-		try {
-			usedJdk = JdkUtils.getRequiredJDK(build, listener);
-		} catch (RequiredJDKNotFoundException rjnfe) {
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - No JDK 1.5 found. The plugin execution is disabled.");
-			return exitPerformAction(build, listener, WebLogicDeploymentStatus.ABORTED, null);
-		}
-		listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - the JDK " +usedJdk != null ? usedJdk.getHome(): System.getProperty("JAVA_HOME")+ " will be used.");
+		// write out the log
+        FileOutputStream deploymentLogOut = new FileOutputStream(getDeploymentLogFile(build));
+//        deploymentLogOut.write("------------------------------------  DEPLOYMENT PRE-REQUISITES ----------------------------------------------\r\n".getBytes());
+        
+        //Pre-requis ko , arret du traitement
+        if(! checkPreRequisites( build, launcher, listener)){
+        	return exitPerformAction(build, listener, WebLogicDeploymentStatus.DISABLED, null);
+        }
 		
 		// Identification de la ressource a deployer
-		FilePath archivedArtifact = null;
+        FilePath archivedArtifact = null;
 		String artifactName = null;
 		String fullArtifactFinalName = null;
 		try {
-			
-			FilePath pomFile = build.getWorkspace().child(POM_FILE_NAME);
-			MavenXpp3Reader pomReader = new MavenXpp3Reader();
-			Reader reader = ReaderFactory.newXmlReader(pomFile.read());
-			Model model = pomReader.read(reader);
-			
-			if(model == null){
-				throw new RuntimeException("[HudsonWeblogicDeploymentPlugin] - Unable to read pom file : No model found.");
-			}
-			
-			//Gestion valeur dynamique tag name (basee sur une property)
-			artifactName = MavenModelUtils.resolveTagValue(model.getName(), model.getArtifactId(), model);
-			String version = MavenModelUtils.resolveTagValue(model.getVersion(), null, model);
-			fullArtifactFinalName = artifactName + "-" + version + "." + model.getPackaging();
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - build final name : " + fullArtifactFinalName);
-			archivedArtifact = build.getWorkspace().child(OUTPUT_MAVEN_BUILD_PROJECT_DIRECTORY).child(fullArtifactFinalName);
-			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - archivedArtifact " + archivedArtifact);
-			
-			// Erreur si l'artifact n'existe pas
-			if(archivedArtifact == null || ! archivedArtifact.exists()){
-				throw new RuntimeException("The file " +archivedArtifact+ " not found");
-			}
-			
+			ArtifactSelector artifactSelector = new MavenJobArtifactSelectorImpl();
+			Artifact selectedArtifact = artifactSelector.selectArtifactRecorded(build, listener);
+			artifactName = selectedArtifact.getFileName();
+			archivedArtifact = new FilePath(selectedArtifact.getFile());
+			fullArtifactFinalName = selectedArtifact.getFileName();
 		} catch (Throwable e) {
             listener.error("[HudsonWeblogicDeploymentPlugin] - Failed to get artifact from archive directory : " + e.getMessage());
             return exitPerformAction(build, listener, WebLogicDeploymentStatus.ABORTED, null);
@@ -319,9 +253,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		//Deploiement
 		String sourceFile = null;
 		String remoteFilePath = null;
-		// write out the log
-        FileOutputStream deploymentLogOut = null;
-      //Recuperation du parametrage
+		//Recuperation du parametrage
 		WeblogicEnvironment weblogicEnvironmentTargeted = null;
 		try {
             
@@ -347,8 +279,6 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 			String[] undeployCommand = WebLogicDeployer.getWebLogicCommandLine(undeployWebLogicDeployerParameters);
 	        
 //	        OutputStream out = new BufferedOutputStream(listener.getLogger());
-	        // write out the revision file
-	        deploymentLogOut = new FileOutputStream(getDeploymentLogFile(build));
 	        deploymentLogOut.write("------------------------------------  ARTIFACT UNDEPLOYMENT ------------------------------------------------\r\n".getBytes());
 	        listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - UNDEPLOYING ARTIFACT...");
 	        final Proc undeploymentProc = launcher.launch().cmds(undeployCommand).stdout(deploymentLogOut).start();
@@ -401,6 +331,80 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	
 	/**
 	 * 
+	 * @param build
+	 * @param launcher
+	 * @param listener
+	 * @return
+	 */
+	private boolean checkPreRequisites(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener){
+		
+		//Verification desactivation plugin
+		if(getDescriptor().isPluginDisabled()){
+			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - The plugin execution is disabled.");
+			return false;
+		}
+				
+		//Verification coherence du (des) declencheur(s)
+		boolean isSpecifiedDeploymentStrategyValue = true;
+		if(CollectionUtils.isEmpty(selectedDeploymentStrategyIds) || 
+				(selectedDeploymentStrategyIds.size() == 1 && selectedDeploymentStrategyIds.contains(NON_DEPLOYMENT_STRATEGY_VALUE_SPECIFIED))){
+			isSpecifiedDeploymentStrategyValue = false;
+		}
+		
+		if(isSpecifiedDeploymentStrategyValue && !hasAtLeastOneBuildCauseChecked(build, selectedDeploymentStrategyIds)){
+			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - Not properly build causes expected (configured=" +StringUtils.join(selectedDeploymentStrategyIds,';')+ ") (currents=" +StringUtils.join(build.getCauses(),';')+ ") : The plugin execution is disabled.");
+			return false;
+		}
+		
+		//Verification strategie relative a la gestion des sources (systematique (par defaut) / uniquement sur modification(actif) )
+		if(isDeployingOnlyWhenUpdates && build.getChangeSet().isEmptySet()) {
+			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - No changes : The plugin execution is disabled.");
+			return false;
+		}
+		
+		
+		// Verification condition de dependance remplie
+		boolean satisfiedDependenciesDeployments = true;
+		if(StringUtils.isNotBlank(deployedProjectsDependencies)){
+			String[] listeDependances = StringUtils.split(StringUtils.trim(deployedProjectsDependencies), ',');
+			for(int i = 0; i<listeDependances.length; i++){
+				TopLevelItem item = Hudson.getInstance().getItem(listeDependances[i]);
+				if(item instanceof Job){
+					WatchingWeblogicDeploymentLogsAction deploymentAction = ((Job<?,?>) item).getLastBuild().getAction(WatchingWeblogicDeploymentLogsAction.class);
+					listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - satisfying dependencies project involved : " + item.getName()+ " deploymentAction : "+ deploymentAction.getDeploymentActionStatus());
+					if(deploymentAction != null && WebLogicDeploymentStatus.FAILED.equals(deploymentAction.getDeploymentActionStatus())){
+						satisfiedDependenciesDeployments = false;
+					}
+				}
+			}
+			
+			if(!satisfiedDependenciesDeployments){
+				listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - Not satisfied project dependencies deployment : The plugin execution is disabled.");
+				return false;
+			}
+		}
+				
+		// Verification build SUCCESS
+		if (build.getResult().isWorseThan(Result.SUCCESS)) {
+			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - build didn't finished successfully. The plugin execution is disabled.");
+			return false;
+		}
+				
+		// Verification version JDK
+		try {
+			usedJdk = JdkUtils.getRequiredJDK(build, listener);
+		} catch (RequiredJDKNotFoundException rjnfe) {
+			listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - No JDK 1.5 found. The plugin execution is disabled.");
+			return false;
+		}
+		listener.getLogger().println("[HudsonWeblogicDeploymentPlugin] - the JDK " +usedJdk != null ? usedJdk.getHome(): System.getProperty("JAVA_HOME")+ " will be used.");
+		return true;		
+	}
+	
+
+	
+	/**
+	 * 
 	 * @param listener
 	 * @return
 	 */
@@ -446,12 +450,6 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		
 		public static transient final String PLUGIN_XSD_SCHEMA_CONFIG_FILE_PATH = WebLogicDeploymentPluginConstantes.PLUGIN_RESOURCES_PATH + "/defaultConfig/plugin-configuration.xsd";
 		
-		public static transient final String WL_HOME_ENV_VAR_NAME = "WL_HOME";
-		
-		public static transient final String WL_HOME_LIB_DIR = "/server/lib/";
-		
-		public static transient final String WL_WEBLOGIC_LIBRARY_NAME = "weblogic.jar";
-		
 		private String configurationFilePath;
 		
 		private boolean pluginDisabled;
@@ -477,7 +475,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		 * 
 		 */
 		public HudsonWeblogicDeploymentPluginDescriptor(){
-			super(HudsonWeblogicDeploymentPlugin.class);
+			super(WeblogicDeploymentPlugin.class);
 			
 			//on charge les annotations XStream
 			Hudson.XSTREAM.processAnnotations(
@@ -600,7 +598,14 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 			
 			pluginDisabled = json.getBoolean("pluginDisabled");
 			excludedArtifactNamePattern = json.getString("excludedArtifactNamePattern");
-			extraClasspath = json.getString("extraClasspath");
+			
+			// Sauvegarde de la valeur par defaut
+			if(StringUtils.isNotBlank(json.getString("extraClasspath"))){
+				extraClasspath = json.getString("extraClasspath");
+			} else {
+				extraClasspath = DeployerClassPathUtils.getDefaultPathToWebLogicJar();
+			}
+			
 			javaOpts = json.getString("javaOpts");
 			
 			//Chargement des weblogicTargets
@@ -620,13 +625,6 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		        
 				WeblogicDeploymentConfiguration weblogicDeploymentConfiguration =null;
 		        
-//		        if(StringUtils.isBlank(configurationFilePath)) {
-//		        	// Cas ou aucun fichier n'est mentionne
-//		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
-//		        	URL url = uri.toURL();
-//		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
-//		        } else
-				
 				if(StringUtils.isBlank(configurationFilePath)){
 					return;
 				}
@@ -638,11 +636,6 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		        } else if (FileUtils.fileExists(configurationFilePath)) {
 		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(new FileInputStream(FileUtils.getFile(configurationFilePath)));
 		        }
-//		        else {
-//		        	URI uri = new URI(Hudson.getInstance().getRootUrl() + PLUGIN_DEFAULT_CONFIG_FILE_PATH);
-//		        	URL url = uri.toURL();
-//		        	weblogicDeploymentConfiguration = (WeblogicDeploymentConfiguration) Hudson.XSTREAM.fromXML(url.openStream());
-//		        }
 		        
 		        if(weblogicDeploymentConfiguration != null && ! ArrayUtils.isEmpty(weblogicDeploymentConfiguration.getWeblogicEnvironments())){
 		        	weblogicEnvironments = weblogicDeploymentConfiguration.getWeblogicEnvironments();
@@ -688,10 +681,8 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
         		
         		// Si aucun jar specifie. On tente le WL_HOME.
         		// On verifie que la librairie existe bien
-        		String envWlHome = System.getenv(WL_HOME_ENV_VAR_NAME);
-        		String defaultClasspath = FileUtils.normalize(envWlHome+WL_HOME_LIB_DIR+WL_WEBLOGIC_LIBRARY_NAME);
-        		if(FileUtils.fileExists(defaultClasspath)){
-        			return FormValidation.warning("By default, the "+WL_WEBLOGIC_LIBRARY_NAME+" library found into "+envWlHome+WL_HOME_LIB_DIR+" will be used.");
+        		if(DeployerClassPathUtils.checkDefaultPathToWebLogicJar()){
+        			return FormValidation.warning("By default, the "+WebLogicDeploymentPluginConstantes.WL_WEBLOGIC_LIBRARY_NAME+" library found into "+System.getenv(WebLogicDeploymentPluginConstantes.WL_HOME_ENV_VAR_NAME)+WebLogicDeploymentPluginConstantes.WL_HOME_LIB_DIR+" will be used.");
         		}
         		
         		return FormValidation.error("The weblogic library has to be filled in.");
@@ -738,6 +729,8 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	
 	/**
 	 * 
+	 * @param build
+	 * @param deploymentStrategies
 	 * @return
 	 */
 	private boolean hasAtLeastOneBuildCauseChecked(AbstractBuild<?, ?> build, List<String> deploymentStrategies) {
@@ -761,6 +754,9 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 	/**
 	 * 
 	 * @param build
+	 * @param listener
+	 * @param status
+	 * @param weblogicEnvironment
 	 * @return
 	 */
 	private boolean exitPerformAction(AbstractBuild<?, ?> build, BuildListener listener, WebLogicDeploymentStatus status, WeblogicEnvironment weblogicEnvironment){
@@ -776,7 +772,7 @@ public class HudsonWeblogicDeploymentPlugin extends Recorder {
 		}
 		
 		//Ajout de la build action
-		build.addAction(new BuildSeeWeblogicDeploymentLogsAction(status, build, weblogicEnvironment));
+		build.addAction(new WatchingWeblogicDeploymentLogsAction(status, build, weblogicEnvironment));
 		
 		listener.getLogger().println("[INFO] ------------------------------------------------------------------------");
 		listener.getLogger().println("[INFO] DEPLOYMENT "+status.name());

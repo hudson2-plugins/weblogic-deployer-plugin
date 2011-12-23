@@ -3,40 +3,23 @@
  */
 package org.hudsonci.plugins.deploy.weblogic;
 
-import java.io.IOException;
+import hudson.model.Action;
+import hudson.model.AbstractBuild;
+
 import java.io.Serializable;
 
-import javax.servlet.ServletException;
-
-import hudson.FilePath;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BuildBadgeAction;
-import hudson.model.AbstractBuild;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.Hudson;
-import hudson.model.TaskAction;
-import hudson.security.ACL;
-import hudson.security.Permission;
-
-import org.hudsonci.plugins.deploy.weblogic.build.WebLogicDeploymentStatus;
+import org.hudsonci.plugins.deploy.weblogic.data.WebLogicDeploymentStatus;
 import org.hudsonci.plugins.deploy.weblogic.data.WeblogicEnvironment;
 import org.hudsonci.plugins.deploy.weblogic.properties.WebLogicDeploymentPluginConstantes;
-import org.kohsuke.stapler.Stapler;
-import org.kohsuke.stapler.StaplerProxy;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-
-import org.hudsonci.plugins.deploy.weblogic.Messages;
 
 /**
  * @author rchaumie
  *
  */
 @ExportedBean(defaultVisibility = 999)
-public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializable {
+public class WatchingWeblogicDeploymentLogsAction implements Action, Serializable {
 	
 	/**
 	 * 
@@ -44,6 +27,8 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	private static final long serialVersionUID = -5479554061667005120L;
 
 	private static transient final String iconFileName = WebLogicDeploymentPluginConstantes.PLUGIN_RESOURCES_PATH + "/icons/48x48/BEA.jpg";
+	
+	private static transient final String urlName = "deploymentLogs";
 	
 	@Exported(name="status")
 	public WebLogicDeploymentStatus deploymentActionStatus;
@@ -53,10 +38,12 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	@Exported(name="target")
 	public WeblogicEnvironment target;
 	
+	private transient boolean isLogsAvailable = false;
+	
 	/**
 	 * 
 	 */
-	public BuildSeeWeblogicDeploymentLogsAction(){
+	public WatchingWeblogicDeploymentLogsAction(){
 		super();
 	}
 	
@@ -65,10 +52,14 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	 * @param deploymentActionStatus
 	 * @param b
 	 */
-	public BuildSeeWeblogicDeploymentLogsAction(WebLogicDeploymentStatus deploymentActionStatus, AbstractBuild<?, ?> b, WeblogicEnvironment target){
+	public WatchingWeblogicDeploymentLogsAction(WebLogicDeploymentStatus deploymentActionStatus, AbstractBuild<?, ?> b, WeblogicEnvironment target){
 		this.build = b;
 		this.deploymentActionStatus = deploymentActionStatus;
 		this.target = target;
+		//lien vers les logs uniquement si pas d'execution
+		if(! WebLogicDeploymentStatus.ABORTED.equals(deploymentActionStatus) && ! WebLogicDeploymentStatus.DISABLED.equals(deploymentActionStatus)){
+			this.isLogsAvailable = true;
+		}
 	}
 	
 	/*
@@ -76,7 +67,7 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	 * @see hudson.model.Action#getDisplayName()
 	 */
 	public String getDisplayName() {
-		return Messages.BuildWeblogicDeploymentAction_DisplayName();
+		return this.isLogsAvailable ? Messages.WatchingWeblogicDeploymentLogsAction_DisplayName() : Messages.WatchingWeblogicDeploymentLogsAction_MissingLogs();
 	}
 
 	/*
@@ -92,7 +83,7 @@ public class BuildSeeWeblogicDeploymentLogsAction implements Action, Serializabl
 	 * @see hudson.model.Action#getUrlName()
 	 */
 	public String getUrlName() {
-		return "deploymentLogs";
+		return this.isLogsAvailable ? urlName : "#";
 	}
 	
 	/**
