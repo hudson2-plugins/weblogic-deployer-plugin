@@ -231,7 +231,8 @@ public class WeblogicDeploymentPlugin extends Recorder {
 		try {
 			ArtifactSelector artifactSelector = new MavenJobArtifactSelectorImpl();
 			Artifact selectedArtifact = artifactSelector.selectArtifactRecorded(build, listener);
-			artifactName = selectedArtifact.getFileName();
+			// Ne devrait pas etre le nom mais la valeur finale du artifact.name (sans l'extension)
+			artifactName = StringUtils.substringBeforeLast(selectedArtifact.getFileName(), ".");
 			archivedArtifact = new FilePath(selectedArtifact.getFile());
 			fullArtifactFinalName = selectedArtifact.getFileName();
 		} catch (Throwable e) {

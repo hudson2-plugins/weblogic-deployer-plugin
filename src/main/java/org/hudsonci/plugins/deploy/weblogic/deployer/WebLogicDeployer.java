@@ -119,7 +119,7 @@ public class WebLogicDeployer {
         }
         
         args.add("-name");
-        String targetedDeploymentName = StringUtils.isBlank(parameter.getDeploymentName()) ? parameter.getDeploymentName() : parameter.getArtifactId();
+        String targetedDeploymentName = StringUtils.isNotBlank(parameter.getDeploymentName()) ? parameter.getDeploymentName() : parameter.getArtifactName();
         if(StringUtils.isBlank(targetedDeploymentName)){
         	// TODO
         }

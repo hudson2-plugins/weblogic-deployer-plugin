@@ -27,7 +27,6 @@ public class URLUtils {
 	      return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
 	    }
 	    catch (Exception e) {
-//	       e.printStackTrace();
 	       return false;
 	    }
 	  }

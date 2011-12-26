@@ -34,7 +34,7 @@ public class WebLogicDeployerParameters {
 	
 	private WeblogicEnvironment environment;
 	
-	private String artifactId;
+	private String artifactName;
 	
 	private String source;
 	
@@ -58,7 +58,7 @@ public class WebLogicDeployerParameters {
 	 * @param isLibrary
 	 * @param deploymentTargets
 	 * @param environment
-	 * @param artifactId
+	 * @param artifactName
 	 * @param source
 	 * @param command
 	 * @param silentMode
@@ -66,7 +66,7 @@ public class WebLogicDeployerParameters {
 	public WebLogicDeployerParameters(AbstractBuild<?, ?> build,
 			Launcher launcher, BuildListener listener, JDK usedJdk,
 			String deploymentName, boolean isLibrary, String deploymentTargets,
-			WeblogicEnvironment environment, String artifactId, String source,
+			WeblogicEnvironment environment, String artifactName, String source,
 			WebLogicCommand command, boolean silentMode,String javaOpts, String classpath) {
 		super();
 		this.build = build;
@@ -77,7 +77,7 @@ public class WebLogicDeployerParameters {
 		this.isLibrary = isLibrary;
 		this.deploymentTargets = deploymentTargets;
 		this.environment = environment;
-		this.artifactId = artifactId;
+		this.artifactName = artifactName;
 		this.source = source;
 		this.command = command;
 		this.silentMode = silentMode;
@@ -198,17 +198,17 @@ public class WebLogicDeployerParameters {
 	}
 
 	/**
-	 * @return the artifactId
+	 * @return the artifactName
 	 */
-	public String getArtifactId() {
-		return artifactId;
+	public String getArtifactName() {
+		return artifactName;
 	}
 
 	/**
-	 * @param artifactId the artifactId to set
+	 * @param artifactId the artifactName to set
 	 */
-	public void setArtifactId(String artifactId) {
-		this.artifactId = artifactId;
+	public void setArtifactName(String artifactName) {
+		this.artifactName = artifactName;
 	}
 
 	/**
