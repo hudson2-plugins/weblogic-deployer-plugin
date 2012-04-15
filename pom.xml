@@ -11,7 +11,7 @@
 
 	<artifactId>weblogic-deployer-plugin</artifactId>
 	<name>Hudson WebLogic Deployer Plug-in</name>
-	<version>1.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 
 	<url>http://wiki.hudson-ci.org/display/HUDSON/WebLogic+Deployer+Plugin</url>
